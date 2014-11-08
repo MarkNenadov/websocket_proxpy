@@ -1,0 +1,12 @@
+High priority
+
+* Better error handling
+* Implement a way to close a connection
+
+Medium priority
+
+* File logging capability
+
+Low priority
+
+* Look into supporting wss
