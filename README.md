@@ -1,9 +1,7 @@
-websocket_proxpy
-================
+WebSocketProxpy
+=========
 
-A simple WebSocket proxy server implemented in Python 3.
-
---------------------------------------------------------
+A simple WebSocket Proxy Server implemented in Python 3.
 
 This server can run in one of two different modes:
 
@@ -19,24 +17,31 @@ This server can run in one of two different modes:
 == Instructions ==
 
 1. In config.yaml, ensure serverType is set to "OPEN_URL" (to allow clients to choose which URL to connect to) or
-   "FORCED_URL" (to make the proxy always connect the client to the same url)
+   "FORCED_URL" (to make the proxy always connect the client to the same url) or "FORCED_URL_NO_PASSWORD" (which is
+   the same as "FORCED_URL", except no password is required--the connected client's webscoket requests immediately
+   get proxied)
 
-2. If you are using FORCED_URL, uncomment and set proxiedUrl to a valid websocket url. Otherwise it should be commented out with a "#"
+2. If you are using FORCED_URL or FORCED_URL_NO_PASSWORD, uncomment and set proxiedUrl to a valid websocket url.
+   Otherwise it should be commented out with a "#"
 
 3. Set the other configuration options, such as host, post, passphrase
 
-4. From within the project root, launch proxy.py
+4. From within the project root, launch proxy.py and connect from a websocket client to the host/port in config.yaml.
 
-5. Connect from a websocket client to the host/port in config.yaml, and send the password in json like so:
+5. If you are using FORCED_URL_NO_PASSWORD, skip to step 7. Otherwise, send the password in json like so:
 
     {"password": "12345"}
 
     You will receive a json response where "status" is either "ok" or "error" with an elaboration in "message.
 
-6. If you are using FORCED_URL, skip this step. Otherwise send the url you wish to connect to in json, like so:
+6. If you are using FORCED_URL or FORCED_URL_NO_PASSWORD, skip this step. Otherwise send the url you wish to connect
+   to in json, like so:
 
     {"url": "ws://localhost:8081/test"}
 
     You will receive a json response where "status" is either "ok" or "error"  with an elaboration in "message.
 
-7. Send X amount of further requests to pass along whatever you intend to send to the proxied websocket.
+7. Send X amount of websocket requests, which will be passed along to the proxied websocket.
+
+8. When you are done and want to connection terminated, send:
+    {"action": "close"}

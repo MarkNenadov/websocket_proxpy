@@ -43,8 +43,19 @@ class WebSocketProxpy:
 
         if ('url' not in parsedJson):
             return None
-        else:
-            return parsedJson['url']
+        return parsedJson['url']
+
+    def is_close(self, json_content):
+        # expects {"action": "close"}
+        parsedJson = json.loads(json_content)
+
+        if ('action' not in parsedJson):
+            return False
+
+        if parsedJson['action'] != "close":
+            return False
+
+        return True
 
     def loadConfigFromYaml(self, configYaml):
         self.loadServerConfigFromYaml(configYaml)
@@ -104,6 +115,11 @@ class WebSocketProxpy:
             while True:
                 request_for_proxy = yield from proxy_web_socket.recv()
                 self.logger.log("Received request from CLIENT [" + request_for_proxy + "]")
+
+                if self.is_close(request_for_proxy):
+                    self.logger.log("Received CLOSE from CLIENT [" + request_for_proxy + "]")
+                    return
+
                 yield from proxied_web_socket.send( request_for_proxy )
                 connection.request_count += 1
 
