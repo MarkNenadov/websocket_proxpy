@@ -5,4 +5,5 @@ configuration:
         type: "OPEN_URL"          # can be OPEN_URL or FORCED_URL .. if FORCED_URL, proxiedUrl must be uncommented
         listenHost: "localhost"
         port: "1111"
+        requestsPerConnection: "10000"
         #proxiedUrl: "ws://localhost:8081/test"
