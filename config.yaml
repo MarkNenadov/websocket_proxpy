@@ -2,8 +2,9 @@ configuration:
     authenticationConfiguration:
         password: "rambo"
     serverConfiguration:
-        type: "OPEN_URL"          # can be OPEN_URL or FORCED_URL .. if FORCED_URL, proxiedUrl must be uncommented
+        # type can be OPEN_URL or FORCED_URL or FORCED_URL_NO_PASSWORD - later two need proxiedUrl uncommented
+        type: "FORCED_URL_NO_PASSWORD"
         listenHost: "localhost"
         port: "1111"
         requestsPerConnection: "10000"
-        #proxiedUrl: "ws://localhost:8081/test"
+        proxiedUrl: "ws://localhost:8081/borderconnect/api/sockets/borderconnect"

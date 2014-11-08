@@ -22,6 +22,9 @@ class WebSocketProxpy:
     def is_forced_url_server(self):
         return self.serverType == "FORCED_URL"
 
+    def is_forced_url_no_password_server(self):
+        return self.serverType == "FORCED_URL_NO_PASSWORD"
+
     def authenticate(self, connection):
         # expects {"password": "12345"}
         parsedJson = json.loads(connection.credentials)
@@ -53,29 +56,37 @@ class WebSocketProxpy:
 
         connection = WebSocketConnection()
 
-        connection.credentials = yield from self.get_credentials(proxy_web_socket)
+        if not self.is_forced_url_no_password_server():
+            connection.credentials = yield from self.get_credentials(proxy_web_socket)
 
-        if self.authenticate( connection ):
-            yield from proxy_web_socket.send( get_json_status_response( "ok", "Authenticated " + self.get_post_authentication_directions() + "'}" ) )
-            proxied_url_value = ""
-            if self.is_open_url_server():
-                proxied_url_json = yield from proxy_web_socket.recv()
-                proxied_url_value = self.parse_destination_url( proxied_url_json )
-                self.logger.log("PROXIED SERVER url received [" + proxied_url_value + "]")
+            if self.authenticate( connection ):
+                yield from proxy_web_socket.send( get_json_status_response( "ok", "Authenticated " + self.get_post_authentication_directions() + "'}" ) )
+                proxied_url_value = ""
+                if self.is_open_url_server():
+                    proxied_url_json = yield from proxy_web_socket.recv()
+                    proxied_url_value = self.parse_destination_url( proxied_url_json )
+                    self.logger.log("PROXIED SERVER url received [" + proxied_url_value + "]")
+
+                    if (proxied_url_value == None):
+                        yield from proxy_web_socket.send( get_json_status_response( "error", "Could not establish proxy. Url not provided in [" + proxied_url_json + "]'}" ) )
+                        return
+                else:
+                    proxied_url_value = self.proxied_url
+
+                proxied_web_socket = yield from websockets.connect( proxied_url_value )
+                self.logger.log("Established connection with PROXIED SERVER [" + proxied_url_value + "]")
+                yield from proxy_web_socket.send( get_json_status_response( "ok", "Proxied connection [" + proxied_url_value + "] open for arbitrary requests.'" ) )
+
+                yield from self.process_arbitrary_requests(proxy_web_socket, proxied_web_socket, connection)
             else:
-                proxied_url_value = self.proxied_url
-
-            if (proxied_url_value == None):
-                yield from proxy_web_socket.send( get_json_status_response( "error", "Could not establish proxy. Url not provided in [" + proxied_url_json + "]'}" ) )
-                return
+                yield from self.proxy_web_socket.send( get_json_status_response( "error", "Could not authenticate. Valid password not provided in [" + connection.credentials + "]'}" ) )
+                self.logger.log( "CLIENT authentication credentials [" + connection.credentials + "] rejected.")
+        else:
+            proxied_url_value = self.proxied_url
             proxied_web_socket = yield from websockets.connect( proxied_url_value )
             self.logger.log("Established connection with PROXIED SERVER [" + proxied_url_value + "]")
-            yield from proxy_web_socket.send( get_json_status_response( "ok", "Proxied connection [" + proxied_url_value + "] open for arbitrary requests.'" ) )
 
             yield from self.process_arbitrary_requests(proxy_web_socket, proxied_web_socket, connection)
-        else:
-            yield from proxy_web_socket.send( get_json_status_response( "error", "Could not authenticate. Valid password not provided in [" + connection.credentials + "]'}" ) )
-            self.logger.log( "CLIENT authentication credentials [" + connection.credentials + "] rejected.")
 
     def get_credentials(self, web_socket):
         credentials = yield from web_socket.recv()
@@ -119,11 +130,11 @@ class WebSocketProxpy:
         self.port = int(serverConfiguration['port'])
         self.serverType = serverConfiguration['type']
         self.requests_per_connection = int(serverConfiguration['requestsPerConnection'])
-        if not self.is_open_url_server() and not self.is_forced_url_server():
+        if not self.has_valid_server_type():
             self.logger.log("Server type value [" + self.serverType + "] in config is invalid. Can't start server")
             sys.exit(0)
 
-        if (self.is_forced_url_server()):
+        if (self.is_forced_url_server() or self.is_forced_url_no_password_server()):
             self.proxied_url = serverConfiguration['proxiedUrl']
 
             if ( self.proxied_url == None or self.proxied_url == ""):
@@ -139,6 +150,10 @@ class WebSocketProxpy:
             authentication_message += "Supply URL."
 
         return authentication_message
+
+    def has_valid_server_type(self):
+        return self.is_open_url_server() or self.is_forced_url_server() or self.is_forced_url_no_password_server()
+
 
 class WebSocketConnection:
     request_count = 0
