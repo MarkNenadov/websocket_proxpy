@@ -1,11 +1,9 @@
 High priority
 
 * Better error handling
-* Implement a way to close a connection
 
 Medium priority
 
-* Docstrings
 * File logging capability
 
 Low priority

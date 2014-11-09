@@ -7,6 +7,7 @@ This server can run in one of two different modes:
 
 1. OPEN_URL, where the connecting client provides a url to connect to via the proxy
 2. FORCED_URL, where the server is hardwired to connect to one and only one url
+2. FORCED_URL_NO_PASSWORD, where the server is hardwired to connect to one and only one url and no password is required.
 
 == Requirements ==
 
@@ -16,10 +17,7 @@ This server can run in one of two different modes:
 
 == Instructions ==
 
-1. In config.yaml, ensure serverType is set to "OPEN_URL" (to allow clients to choose which URL to connect to) or
-   "FORCED_URL" (to make the proxy always connect the client to the same url) or "FORCED_URL_NO_PASSWORD" (which is
-   the same as "FORCED_URL", except no password is required--the connected client's webscoket requests immediately
-   get proxied)
+1. In config.yaml, ensure serverType is set to OPEN_URL, FORCED_URL_NO_PASSWORD, or FORCED_URL_NO_PASSWORD
 
 2. If you are using FORCED_URL or FORCED_URL_NO_PASSWORD, uncomment and set proxiedUrl to a valid websocket url.
    Otherwise it should be commented out with a "#"
