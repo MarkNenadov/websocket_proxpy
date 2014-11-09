@@ -3,7 +3,7 @@ WebSocketProxpy
 
 A simple WebSocket Proxy Server implemented in Python 3.
 
-This server can run in one of two different modes:
+This server can run in one of three modes:
 
 1. OPEN_URL, where the connecting client provides a url to connect to via the proxy
 2. FORCED_URL, where the server is hardwired to connect to one and only one url
