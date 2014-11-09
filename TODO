@@ -1,6 +1,7 @@
 High priority
 
 * Better error handling
+* More unit testing coverage
 
 Medium priority
 
@@ -9,3 +10,4 @@ Medium priority
 Low priority
 
 * Look into supporting wss
+* Fix remaining PyCharm code inspection issues

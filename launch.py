@@ -4,7 +4,7 @@ import yaml
 
 CONFIG_FILE_NAME = "config.yaml"
 
-configYaml = yaml.load(open(CONFIG_FILE_NAME))
+config = yaml.load(open(CONFIG_FILE_NAME))
 
-WebSocketProxpy(loggers.ConsoleDebugLogger()).run(configYaml)
+WebSocketProxpy(loggers.ConsoleDebugLogger()).run(config)
 

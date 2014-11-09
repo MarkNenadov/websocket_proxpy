@@ -12,12 +12,12 @@ This server can run in one of three modes:
 == Requirements ==
 
 1. Python 3 (tested on Python 3.4)
-2. The 'websockets' module
-3. The 'yaml' module
+2. The 'websockets' module (pip install websockets)
+3. The 'yaml' module (pip install pyyaml)
 
 == Instructions ==
 
-1. In config.yaml, ensure serverType is set to OPEN_URL, FORCED_URL_NO_PASSWORD, or FORCED_URL_NO_PASSWORD
+1. In config.yaml, ensure serverType is set to OPEN_URL, FORCED_URL, or FORCED_URL_NO_PASSWORD
 
 2. If you are using FORCED_URL or FORCED_URL_NO_PASSWORD, uncomment and set proxiedUrl to a valid websocket url.
    Otherwise it should be commented out with a "#"
