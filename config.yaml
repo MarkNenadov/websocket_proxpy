@@ -8,3 +8,6 @@ configuration:
         port: "1111"
         requestsPerConnection: "10000"
         proxiedUrl: "ws://localhost:8081/borderconnect/api/sockets/borderconnect"
+    transportConfiguration:
+        sendPrefix: "" # these allow a prefix and suffix on all arbitrary requests to proxied server
+        sendSuffix: ""
