@@ -1,0 +1,13 @@
+configuration:
+    authenticationConfiguration:
+        password: "gogol"
+    serverConfiguration:
+        # type can be OPEN_URL or FORCED_URL or FORCED_URL_NO_PASSWORD - later two need proxiedUrl uncommented
+        type: "FORCED_URL"
+        listenHost: "192.168.1.10"
+        port: "7777"
+        requestsPerConnection: "500"
+        proxiedUrl: "ws://localhost:8081/borderconnect/api/sockets/borderconnect"
+    transportConfiguration:
+        sendPrefix: "prefix" # these allow a prefix and suffix on all arbitrary requests to proxied server
+        sendSuffix: "suffix"

@@ -75,9 +75,13 @@ class WebSocketProxpy:
         return True
 
     def load_config_from_yaml(self, config_yaml):
-        self.load_server_config_from_yaml(config_yaml)
-        self.load_authentication_config_from_yaml(config_yaml)
-        self.load_transport_config_from_yaml(config_yaml)
+        try:
+            self.load_server_config_from_yaml(config_yaml)
+            self.load_authentication_config_from_yaml(config_yaml)
+            self.load_transport_config_from_yaml(config_yaml)
+            return True
+        except TypeError:
+            return False
 
     @asyncio.coroutine
     def proxy_dispatcher(self, proxy_web_socket, path):
@@ -122,7 +126,11 @@ class WebSocketProxpy:
         return credentials
 
     def run(self, config_yaml):
-        self.load_config_from_yaml(config_yaml)
+        is_config_loaded = self.load_config_from_yaml(config_yaml)
+
+        if not is_config_loaded:
+            base.fatal_fail("Unable to load config file, can't parse the YAML!")
+
         server = websockets.serve(self.proxy_dispatcher, self.host, self.port)
         self.logger.log("Initializing PROXY SERVER")
         asyncio.get_event_loop().run_until_complete(server)
