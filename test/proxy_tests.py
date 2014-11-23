@@ -29,7 +29,7 @@ class WebSocketProxpyTests(unittest.TestCase):
         self.assertEquals("192.168.1.10", self.web_socket_proxpy.host)
         self.assertEquals("FORCED_URL", self.web_socket_proxpy.serverType)
         self.assertEquals(500, self.web_socket_proxpy.requests_per_connection)
-        self.assertEquals("ws://localhost:8081/borderconnect/api/sockets/borderconnect", self.web_socket_proxpy.proxied_url)
+        self.assertEquals("ws://localhost:8080/test", self.web_socket_proxpy.proxied_url)
         self.assertEquals("prefix", self.web_socket_proxpy.send_prefix)
         self.assertEquals("suffix", self.web_socket_proxpy.send_suffix)
 
@@ -61,6 +61,7 @@ class WebSocketProxpyTests(unittest.TestCase):
         connection = WebSocketConnection()
         self.web_socket_proxpy.password = "something else"
         self.assertFalse(self.web_socket_proxpy.authenticate(connection))
+        self.web_socket_proxpy.password = ""
 
     def test_authenticate_with_bad_json(self):
         connection = WebSocketConnection()

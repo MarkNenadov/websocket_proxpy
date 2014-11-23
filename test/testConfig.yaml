@@ -7,7 +7,7 @@ configuration:
         listenHost: "192.168.1.10"
         port: "7777"
         requestsPerConnection: "500"
-        proxiedUrl: "ws://localhost:8081/borderconnect/api/sockets/borderconnect"
+        proxiedUrl: "ws://localhost:8080/test"
     transportConfiguration:
         sendPrefix: "prefix" # these allow a prefix and suffix on all arbitrary requests to proxied server
         sendSuffix: "suffix"

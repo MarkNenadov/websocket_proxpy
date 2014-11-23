@@ -1,7 +1,7 @@
 from websocket_proxpy.util import base
 try:
     import websockets
-except:
+except ImportError:
     base.fatal_fail("'websockets' library required (pip install websockets). Exiting.")
 from websocket_proxpy.util.jsonutils import get_json_status_response
 import asyncio
@@ -115,14 +115,14 @@ class WebSocketProxpy:
             yield from self.process_arbitrary_requests(proxy_web_socket, proxied_web_socket, connection)
 
     def respond_with_proxy_connect_error(self, proxied_url_value, proxy_web_socket):
-            proxy_connect_error_message = "Unable to establish connection with proxied url [" + proxied_url_value + "]. Connection closed."
-            yield from proxy_web_socket.send(get_json_status_response("error", proxy_connect_error_message + "'}"))
-            self.logger.log(proxy_connect_error_message)
-
+            error_message = "Unable to connect with proxied url [" + proxied_url_value + "]. Connection closed."
+            yield from proxy_web_socket.send(get_json_status_response("error", error_message + "'}"))
+            self.logger.log(error_message)
 
     def get_credentials(self, web_socket):
         credentials = yield from web_socket.recv()
         self.logger.log("Credentials received from CLIENT [" + credentials + "]")
+
         return credentials
 
     def run(self, config_yaml):
@@ -188,7 +188,8 @@ class WebSocketProxpy:
             self.proxied_url = server_config['proxiedUrl']
 
             if self.proxied_url is None or self.proxied_url == "":
-                self.logger.log("Proxied url in config is missing. It is invalid when running in FORCED_URL mode. Can't start server")
+                error_message = "Proxied url in config missing--required when running in FORCED_URL mode."
+                self.logger.log(error_message)
                 base.fatal_fail(None)
 
     def get_post_authentication_directions(self):
@@ -233,6 +234,7 @@ class WebSocketProxpy:
             yield from proxied_web_socket.send(request_for_proxy)
         except websockets.exceptions.InvalidState:
             proxy_web_socket.send(get_json_status_response("ok", "Proxied connection closed."))
+
 
 class WebSocketConnection:
     request_count = 0
