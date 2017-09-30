@@ -1,6 +1,11 @@
 from websocket_proxpy.proxy import WebSocketProxpy
 from websocket_proxpy.util import loggers
-import yaml
+from websocket_proxpy.util import base
+
+try:
+	import yaml
+except ImportError:
+    base.fatal_fail("'yaml' library required (pip install yaml). Exiting.")
 
 CONFIG_FILE_NAME = "config.yaml"
 
