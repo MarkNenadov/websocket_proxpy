@@ -11,7 +11,7 @@ This server can run in one of three modes:
 
 == Requirements ==
 
-1. Python 3 (tested on Python 3.4, 3.6)
+1. Python 3 (tested on Python 3.4, 3.6, 3.9)
 2. The 'websockets' module (pip install websockets)
 3. The 'yaml' module (pip install pyyaml)
 
