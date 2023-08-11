@@ -1,7 +1,7 @@
 import logging
 
 
-class ConsoleDebugLogger():
+class ConsoleDebugLogger:
     logger = None
 
     def __init__(self, name):

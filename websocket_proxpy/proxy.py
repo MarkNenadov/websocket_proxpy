@@ -12,6 +12,13 @@ import asyncio
 import json
 
 
+async def send_to_web_socket_connection_aware(proxy_web_socket, proxied_web_socket, request_for_proxy):
+    try:
+        await proxied_web_socket.send(request_for_proxy)
+    except websockets.exceptions.InvalidState:
+        proxy_web_socket.send(get_json_status_response("ok", "Proxied connection closed."))
+
+
 class WebSocketProxpy:
     logger = None
     host = "localhost"
@@ -87,7 +94,6 @@ class WebSocketProxpy:
         except TypeError:
             return False
 
-    @asyncio.coroutine
     async def proxy_dispatcher(self, proxy_web_socket, path):
         self.logger.log("Connection established with CLIENT")
 
@@ -150,7 +156,7 @@ class WebSocketProxpy:
 
             if self.send_prefix is not None and self.send_suffix is not None:
                 request_for_proxy = self.send_prefix + request_for_proxy + self.send_suffix
-            await self.send_to_web_socket_connection_aware(proxy_web_socket, proxied_web_socket, request_for_proxy)
+            await send_to_web_socket_connection_aware(proxy_web_socket, proxied_web_socket, request_for_proxy)
             connection.request_count += 1
 
             if connection.request_count > self.requests_per_connection:
@@ -231,12 +237,6 @@ class WebSocketProxpy:
         await proxy_web_socket.send(get_json_status_response("ok", connection_open_message))
 
         return proxied_web_socket
-
-    async def send_to_web_socket_connection_aware(self, proxy_web_socket, proxied_web_socket, request_for_proxy):
-        try:
-            await proxied_web_socket.send(request_for_proxy)
-        except websockets.exceptions.InvalidState:
-            proxy_web_socket.send(get_json_status_response("ok", "Proxied connection closed."))
 
 
 class WebSocketConnection:
