@@ -1,2 +1,9 @@
+import json
+
+
 def get_json_status_response(status_code, message):
-    return "{'status': '" + status_code + "', 'message': '" + message + "'"
+    response = {
+        'status': status_code,
+        'message': message
+    }
+    return json.dumps(response)

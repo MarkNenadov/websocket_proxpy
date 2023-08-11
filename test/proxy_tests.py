@@ -5,7 +5,7 @@ from websocket_proxpy.util.loggers import ConsoleDebugLogger
 
 
 class WebSocketProxpyTests(unittest.TestCase):
-    web_socket_proxpy = WebSocketProxpy(ConsoleDebugLogger())
+    web_socket_proxpy = WebSocketProxpy(ConsoleDebugLogger('websocket_proxy'))
 
     def setUp(self):
         pass
@@ -64,7 +64,6 @@ class WebSocketProxpyTests(unittest.TestCase):
         self.assertFalse(self.web_socket_proxpy.authenticate(connection))
         self.web_socket_proxpy.password = ""
 
-    def test_authenticate_with_bad_json(self):
         connection = WebSocketConnection()
         connection.credentials = "&\"password\": \"test\"}"
         self.assertFalse(self.web_socket_proxpy.authenticate(connection))
@@ -107,7 +106,7 @@ class WebSocketProxpyTests(unittest.TestCase):
 
     # is_force_url_server tests
     def test_is_forced_url_server(self):
-        self.web_socket_proxpy = WebSocketProxpy(ConsoleDebugLogger())
+        self.web_socket_proxpy = WebSocketProxpy(ConsoleDebugLogger('websocket_proxy'))
         self.assertFalse(self.web_socket_proxpy.is_forced_url_server())
 
         self.web_socket_proxpy.serverType = "FORCED_URL_NO_PASSWORD"
@@ -121,7 +120,7 @@ class WebSocketProxpyTests(unittest.TestCase):
 
     # is_open_url_server tests
     def test_is_open_url_server(self):
-        self.web_socket_proxpy = WebSocketProxpy(ConsoleDebugLogger())
+        self.web_socket_proxpy = WebSocketProxpy(ConsoleDebugLogger('websocket_proxy'))
         self.assertTrue(self.web_socket_proxpy.is_open_url_server())
 
         self.web_socket_proxpy.serverType = "FORCED_URL_NO_PASSWORD"
