@@ -95,33 +95,41 @@ class WebSocketProxpy:
             return False
 
     async def proxy_dispatcher(self, proxy_web_socket, path):
-        self.logger.log("Connection established with CLIENT")
+        self.logger.log("Connection established with CLIENT at " + path)
 
         connection = WebSocketConnection()
 
-        if not self.is_forced_url_no_password_server():
+        if self.requires_authentication():
             connection.credentials = await self.get_credentials(proxy_web_socket)
 
             if self.authenticate(connection):
-                authenticated_message = "Authenticated " + self.get_post_authentication_directions()
-                await proxy_web_socket.send(get_json_status_response("ok", f"{authenticated_message}'"))
-                if self.is_open_url_server():
-                    proxied_url_value = await self.get_proxy_url_from_client(proxy_web_socket)
-                    if proxied_url_value is None:
-                        return
-                else:
-                    proxied_url_value = self.proxied_url
-
-                proxied_web_socket = await self.connect_to_proxy_server(proxied_url_value, proxy_web_socket)
-                await self.process_arbitrary_requests(proxy_web_socket, proxied_web_socket, connection)
+                await self.handle_authenticated_connection(connection, proxy_web_socket)
             else:
-                auth_failed_message = "Authentication failed. Password invalid [" + connection.credentials + "]"
-                await proxy_web_socket.send(get_json_status_response("error", auth_failed_message + "'}"))
-                self.logger.log("CLIENT authentication credentials [%s] rejected.", connection.credentials)
+                await self.handle_failed_authentication(connection, proxy_web_socket)
+        else:
+            await self.handle_connection_without_authentication(connection, proxy_web_socket)
+
+    async def handle_authenticated_connection(self, connection, proxy_web_socket):
+        authenticated_message = "Authenticated " + self.get_post_authentication_directions()
+        await proxy_web_socket.send(get_json_status_response("ok", f"{authenticated_message}'"))
+        if self.is_open_url_server():
+            proxied_url_value = await self.get_proxy_url_from_client(proxy_web_socket)
+            if proxied_url_value is None:
+                return
         else:
             proxied_url_value = self.proxied_url
-            proxied_web_socket = await self.connect_to_proxy_server(proxied_url_value, proxy_web_socket)
-            await self.process_arbitrary_requests(proxy_web_socket, proxied_web_socket, connection)
+        proxied_web_socket = await self.connect_to_proxy_server(proxied_url_value, proxy_web_socket)
+        await self.process_arbitrary_requests(proxy_web_socket, proxied_web_socket, connection)
+
+    async def handle_connection_without_authentication(self, connection, proxy_web_socket):
+        proxied_url_value = self.proxied_url
+        proxied_web_socket = await self.connect_to_proxy_server(proxied_url_value, proxy_web_socket)
+        await self.process_arbitrary_requests(proxy_web_socket, proxied_web_socket, connection)
+
+    async def handle_failed_authentication(self, connection, proxy_web_socket):
+        auth_failed_message = "Authentication failed. Password invalid [" + connection.credentials + "]"
+        await proxy_web_socket.send(get_json_status_response("error", auth_failed_message + "'}"))
+        self.logger.log("CLIENT authentication credentials [%s] rejected.", connection.credentials)
 
     async def respond_with_proxy_connect_error(self, proxied_url_value, proxy_web_socket):
         error_message = "Unable to connect with proxied url [" + proxied_url_value + "]. Connection closed."
@@ -237,6 +245,9 @@ class WebSocketProxpy:
         await proxy_web_socket.send(get_json_status_response("ok", connection_open_message))
 
         return proxied_web_socket
+
+    def requires_authentication(self):
+        return  not self.is_forced_url_no_password_server();
 
 
 class WebSocketConnection:
