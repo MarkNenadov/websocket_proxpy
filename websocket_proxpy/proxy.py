@@ -156,10 +156,10 @@ class WebSocketProxpy:
     async def process_requests(self, proxy_web_socket, proxied_web_socket, connection):
         while True:
             request_for_proxy = await proxy_web_socket.recv()
-            self.logger.log("Received request from CLIENT [" + request_for_proxy + "]")
+            self.logger.log(f"Received request from CLIENT [{request_for_proxy}")
 
             if self.is_close(request_for_proxy):
-                self.logger.log("Received CLOSE from CLIENT [" + request_for_proxy + "]")
+                self.logger.log(f"Received CLOSE from CLIENT [{request_for_proxy}")
                 return
 
             if self.send_prefix is not None and self.send_suffix is not None:
@@ -172,11 +172,11 @@ class WebSocketProxpy:
                 return
 
             self.logger.log(
-                "Sending request [" + str(connection.request_count) + "] to PROXIED SERVER [" + request_for_proxy + "]")
+                f"Sending request [{str(connection.request_count)}] to PROXIED SERVER [{request_for_proxy}]")
             response_from_proxy = await proxied_web_socket.recv()
-            self.logger.log("Received response from PROXIED SERVER [" + response_from_proxy + "]")
+            self.logger.log(f"Received response from PROXIED SERVER [{response_from_proxy}]")
             await proxy_web_socket.send(response_from_proxy)
-            self.logger.log("Sending response to CLIENT [" + response_from_proxy + "]")
+            self.logger.log(f"Sending response to CLIENT [{response_from_proxy}]")
 
     async def send_connection_limit_reject(self, proxy_web_socket):
         connection_limit_error = "Unable to proxy request, connection exceeds config limit of [" + str(
@@ -201,7 +201,7 @@ class WebSocketProxpy:
         self.serverType = server_config['type']
         self.requests_per_connection = int(server_config['requestsPerConnection'])
         if not self.has_valid_server_type():
-            self.logger.log("Server type value [" + self.serverType + "] in config is invalid. Can't start server")
+            self.logger.log(f"Server type value [{self.serverType}] in config is invalid. Can't start server")
             base.fatal_fail(None)
 
         if self.is_forced_url_server() or self.is_forced_url_no_password_server():
@@ -231,8 +231,8 @@ class WebSocketProxpy:
         self.logger.log(f"PROXIED SERVER url received [{proxied_url_value}]")
 
         if proxied_url_value is None:
-            url_missing_message = "Couldn't establish proxy. Url not provided in [" + proxied_url_json + "]"
-            await proxy_web_socket.send(get_json_status_response("error", url_missing_message + "'}"))
+            url_missing_message = f"Couldn't establish proxy. Url not provided in [{proxied_url_json}]"
+            await proxy_web_socket.send(get_json_status_response("error", url_missing_message))
 
         if proxied_url_value.startswith("wss://"):
             await proxy_web_socket.send(get_json_status_response("error", "WSS not yet supported"))
