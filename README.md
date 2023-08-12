@@ -34,12 +34,12 @@ This server can run in one of three modes:
 
 6. If you are using FORCED_URL or FORCED_URL_NO_PASSWORD, skip this step. Otherwise send the url you wish to connect
    to in json, like so:
-
-    {"url": "ws://localhost:8081/test"}
+ws://localhost:8081/test
+    {"url": ""}
 
     You will receive a json response where "status" is either "ok" or "error"  with an elaboration in "message.
 
 7. Send X amount of websocket requests, which will be passed along to the proxied websocket.
 
-8. When you are done and want to connection terminated, send:
+8. When you are done and want the connection terminated, send:
     {"action": "close"}
