@@ -138,7 +138,7 @@ class WebSocketProxpy:
 
     async def get_credentials(self, web_socket):
         credentials = await web_socket.recv()
-        self.logger.log("Credentials received from CLIENT [%s]", credentials)
+        self.logger.log(f"Credentials received from CLIENT [{credentials}]")
 
         return credentials
 
@@ -228,11 +228,16 @@ class WebSocketProxpy:
     async def get_proxy_url_from_client(self, proxy_web_socket, ):
         proxied_url_json = await proxy_web_socket.recv()
         proxied_url_value = self.parse_destination_url(proxied_url_json)
-        self.logger.log("PROXIED SERVER url received [" + proxied_url_value + "]")
+        self.logger.log(f"PROXIED SERVER url received [{proxied_url_value}]")
 
         if proxied_url_value is None:
             url_missing_message = "Couldn't establish proxy. Url not provided in [" + proxied_url_json + "]"
             await proxy_web_socket.send(get_json_status_response("error", url_missing_message + "'}"))
+
+        if proxied_url_value.startswith("wss://"):
+            await proxy_web_socket.send(get_json_status_response("error", "WSS not yet supported"))
+        elif not proxied_url_value.startswith("ws://"):
+            await proxy_web_socket.send(get_json_status_response("error", "URL must start with ws://"))
 
         return proxied_url_value
 
