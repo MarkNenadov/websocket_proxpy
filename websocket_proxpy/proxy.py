@@ -119,12 +119,12 @@ class WebSocketProxpy:
         else:
             proxied_url_value = self.proxied_url
         proxied_web_socket = await self.connect_to_proxy_server(proxied_url_value, proxy_web_socket)
-        await self.process_arbitrary_requests(proxy_web_socket, proxied_web_socket, connection)
+        await self.process_requests(proxy_web_socket, proxied_web_socket, connection)
 
     async def handle_connection_without_authentication(self, connection, proxy_web_socket):
         proxied_url_value = self.proxied_url
         proxied_web_socket = await self.connect_to_proxy_server(proxied_url_value, proxy_web_socket)
-        await self.process_arbitrary_requests(proxy_web_socket, proxied_web_socket, connection)
+        await self.process_requests(proxy_web_socket, proxied_web_socket, connection)
 
     async def handle_failed_authentication(self, connection, proxy_web_socket):
         auth_failed_message = "Authentication failed. Password invalid [" + connection.credentials + "]"
@@ -153,7 +153,7 @@ class WebSocketProxpy:
         asyncio.get_event_loop().run_until_complete(server)
         asyncio.get_event_loop().run_forever()
 
-    async def process_arbitrary_requests(self, proxy_web_socket, proxied_web_socket, connection):
+    async def process_requests(self, proxy_web_socket, proxied_web_socket, connection):
         while True:
             request_for_proxy = await proxy_web_socket.recv()
             self.logger.log("Received request from CLIENT [" + request_for_proxy + "]")
@@ -163,15 +163,12 @@ class WebSocketProxpy:
                 return
 
             if self.send_prefix is not None and self.send_suffix is not None:
-                request_for_proxy = self.send_prefix + request_for_proxy + self.send_suffix
+                request_for_proxy = "".join([self.send_prefix, request_for_proxy, self.send_suffix])
             await send_to_web_socket_connection_aware(proxy_web_socket, proxied_web_socket, request_for_proxy)
             connection.request_count += 1
 
             if connection.request_count > self.requests_per_connection:
-                connection_limit_error = "Unable to proxy request, connection exceeds config limit of [" + str(
-                    self.requests_per_connection) + "] requests per connection."
-                self.logger.log(connection_limit_error)
-                await proxy_web_socket.send(get_json_status_response("error", connection_limit_error))
+                await self.send_connection_limit_reject(proxy_web_socket)
                 return
 
             self.logger.log(
@@ -180,6 +177,12 @@ class WebSocketProxpy:
             self.logger.log("Received response from PROXIED SERVER [" + response_from_proxy + "]")
             await proxy_web_socket.send(response_from_proxy)
             self.logger.log("Sending response to CLIENT [" + response_from_proxy + "]")
+
+    async def send_connection_limit_reject(self, proxy_web_socket):
+        connection_limit_error = "Unable to proxy request, connection exceeds config limit of [" + str(
+            self.requests_per_connection) + "] requests per connection."
+        self.logger.log(connection_limit_error)
+        await proxy_web_socket.send(get_json_status_response("error", connection_limit_error))
 
     def load_authentication_config_from_yaml(self, config_yaml):
         authentication_configuration = config_yaml['configuration']['authenticationConfiguration']
