@@ -4,7 +4,7 @@ import logging
 class ConsoleDebugLogger:
     logger = None
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)
 
@@ -15,5 +15,5 @@ class ConsoleDebugLogger:
 
         self.logger.addHandler(logging_stream_handler)
 
-    def log(self, message):
+    def log(self, message: str) -> None:
         self.logger.debug("WebSocketProxy: %s", message)

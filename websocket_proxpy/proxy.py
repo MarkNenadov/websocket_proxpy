@@ -39,7 +39,7 @@ class WebSocketProxpy:
     def is_forced_url_server(self) -> bool:
         return self.serverType == "FORCED_URL"
 
-    def is_forced_url_no_password_server(self):
+    def is_forced_url_no_password_server(self) -> bool:
         return self.serverType == "FORCED_URL_NO_PASSWORD"
 
     def authenticate(self, connection) -> bool:
@@ -75,7 +75,7 @@ class WebSocketProxpy:
         try:
             parsed_json = json.loads(json_content)
         except ValueError:
-            return false
+            return False
 
         if 'action' not in parsed_json:
             return False
@@ -131,7 +131,7 @@ class WebSocketProxpy:
         await proxy_web_socket.send(get_json_status_response("error", auth_failed_message + "'}"))
         self.logger.log("CLIENT authentication credentials [%s] rejected.", connection.credentials)
 
-    async def respond_with_proxy_connect_error(self, proxied_url_value, proxy_web_socket):
+    async def respond_with_proxy_connect_error(self, proxied_url_value, proxy_web_socket) -> None:
         error_message = "Unable to connect with proxied url [" + proxied_url_value + "]. Connection closed."
         await proxy_web_socket.send(get_json_status_response("error", error_message + "'}"))
         self.logger.log(error_message)
@@ -142,7 +142,7 @@ class WebSocketProxpy:
 
         return credentials
 
-    def run(self, config_yaml):
+    def run(self, config_yaml) -> None:
         is_config_loaded = self.load_config_from_yaml(config_yaml)
 
         if not is_config_loaded:
@@ -153,7 +153,7 @@ class WebSocketProxpy:
         asyncio.get_event_loop().run_until_complete(server)
         asyncio.get_event_loop().run_forever()
 
-    async def process_requests(self, proxy_web_socket, proxied_web_socket, connection):
+    async def process_requests(self, proxy_web_socket, proxied_web_socket, connection) -> None:
         while True:
             request_for_proxy = await proxy_web_socket.recv()
             self.logger.log(f"Received request from CLIENT [{request_for_proxy}")
@@ -178,22 +178,22 @@ class WebSocketProxpy:
             await proxy_web_socket.send(response_from_proxy)
             self.logger.log(f"Sending response to CLIENT [{response_from_proxy}]")
 
-    async def send_connection_limit_reject(self, proxy_web_socket):
+    async def send_connection_limit_reject(self, proxy_web_socket) -> None:
         connection_limit_error = "Unable to proxy request, connection exceeds config limit of [" + str(
             self.requests_per_connection) + "] requests per connection."
         self.logger.log(connection_limit_error)
         await proxy_web_socket.send(get_json_status_response("error", connection_limit_error))
 
-    def load_authentication_config_from_yaml(self, config_yaml):
+    def load_authentication_config_from_yaml(self, config_yaml) -> None:
         authentication_configuration = config_yaml['configuration']['authenticationConfiguration']
         self.password = authentication_configuration['password']
 
-    def load_transport_config_from_yaml(self, config_yaml):
+    def load_transport_config_from_yaml(self, config_yaml) -> None:
         transport_configuration = config_yaml['configuration']['transportConfiguration']
         self.send_prefix = transport_configuration['sendPrefix']
         self.send_suffix = transport_configuration['sendSuffix']
 
-    def load_server_config_from_yaml(self, config_yaml):
+    def load_server_config_from_yaml(self, config_yaml) -> None:
         server_config = config_yaml['configuration']['serverConfiguration']
 
         self.host = server_config['listenHost']
@@ -225,7 +225,7 @@ class WebSocketProxpy:
     def has_valid_server_type(self) -> bool:
         return self.is_open_url_server() or self.is_forced_url_server() or self.is_forced_url_no_password_server()
 
-    async def get_proxy_url_from_client(self, proxy_web_socket, ):
+    async def get_proxy_url_from_client(self, proxy_web_socket) -> str:
         proxied_url_json = await proxy_web_socket.recv()
         proxied_url_value = self.parse_destination_url(proxied_url_json)
         self.logger.log(f"PROXIED SERVER url received [{proxied_url_value}]")
@@ -255,7 +255,7 @@ class WebSocketProxpy:
         return proxied_web_socket
 
     def requires_authentication(self) -> bool:
-        return  not self.is_forced_url_no_password_server();
+        return  not self.is_forced_url_no_password_server()
 
 
 class WebSocketConnection:
