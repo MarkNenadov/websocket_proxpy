@@ -15,24 +15,25 @@ class WebSocketProxpyTests(unittest.TestCase):
         self.assertFalse(self.web_socket_proxpy.load_config_from_yaml(""))
 
     def test_load_config_from_yam_when_filled(self):
-        self.assertEqual("", self.web_socket_proxpy.password)
-        self.assertEqual(1111, self.web_socket_proxpy.port)
-        self.assertEqual("localhost", self.web_socket_proxpy.host)
-        self.assertEqual("OPEN_URL", self.web_socket_proxpy.serverType)
-        self.assertEqual(10000, self.web_socket_proxpy.requests_per_connection)
-        self.assertEqual("", self.web_socket_proxpy.proxied_url)
-        self.assertEqual("", self.web_socket_proxpy.send_prefix)
-        self.assertEqual("", self.web_socket_proxpy.send_suffix)
+        proxpy = self.web_socket_proxpy
+        self.assertEqual("", proxpy.password)
+        self.assertEqual(1111, proxpy.port)
+        self.assertEqual("localhost", proxpy.host)
+        self.assertEqual("OPEN_URL", proxpy.serverType)
+        self.assertEqual(10000, proxpy.requests_per_connection)
+        self.assertEqual("", proxpy.proxied_url)
+        self.assertEqual("", proxpy.send_prefix)
+        self.assertEqual("", proxpy.send_suffix)
         with open("testConfig.yaml") as yamlFile:
-            self.assertTrue(self.web_socket_proxpy.load_config_from_yaml(yaml.load(yamlFile, Loader=yaml.Loader)))
-        self.assertEqual("gogol", self.web_socket_proxpy.password)
-        self.assertEqual(7777, self.web_socket_proxpy.port)
-        self.assertEqual("192.168.1.10", self.web_socket_proxpy.host)
-        self.assertEqual("FORCED_URL", self.web_socket_proxpy.serverType)
-        self.assertEqual(500, self.web_socket_proxpy.requests_per_connection)
-        self.assertEqual("ws://localhost:8080/test", self.web_socket_proxpy.proxied_url)
-        self.assertEqual("prefix", self.web_socket_proxpy.send_prefix)
-        self.assertEqual("suffix", self.web_socket_proxpy.send_suffix)
+            self.assertTrue(proxpy.load_config_from_yaml(yaml.load(yamlFile, Loader=yaml.Loader)))
+        self.assertEqual("gogol", proxpy.password)
+        self.assertEqual(7777, proxpy.port)
+        self.assertEqual("192.168.1.10", proxpy.host)
+        self.assertEqual("FORCED_URL", proxpy.serverType)
+        self.assertEqual(500, proxpy.requests_per_connection)
+        self.assertEqual("ws://localhost:8080/test", proxpy.proxied_url)
+        self.assertEqual("prefix", proxpy.send_prefix)
+        self.assertEqual("suffix", proxpy.send_suffix)
 
     # is_close tests
     def test_is_close_with_non_json_text(self):
@@ -70,39 +71,42 @@ class WebSocketProxpyTests(unittest.TestCase):
 
     # parse_destination_url tests
     def test_parse_destination_url(self):
-        self.assertIsNone(self.web_socket_proxpy.parse_destination_url("blah"))
-        self.assertIsNone(self.web_socket_proxpy.parse_destination_url("{\"yo\": \"hey\"}"))
-        self.assertEqual("blah", self.web_socket_proxpy.parse_destination_url("{\"url\": \"blah\"}"))
-        self.assertIsNone(self.web_socket_proxpy.parse_destination_url("*\"url\": \"blah\"}"))
+        proxpy = self.web_socket_proxpy
+        self.assertIsNone(proxpy.parse_destination_url("blah"))
+        self.assertIsNone(proxpy.parse_destination_url("{\"yo\": \"hey\"}"))
+        self.assertEqual("blah", proxpy.parse_destination_url("{\"url\": \"blah\"}"))
+        self.assertIsNone(proxpy.parse_destination_url("*\"url\": \"blah\"}"))
 
     # has valid server type tests
     def test_has_valid_server_type(self):
-        self.assertTrue(self.web_socket_proxpy.has_valid_server_type())
+        proxpy = self.web_socket_proxpy
+        self.assertTrue(proxpy.has_valid_server_type())
 
-        self.web_socket_proxpy.serverType = "FORCED_URL_NO_PASSWORD"
-        self.assertTrue(self.web_socket_proxpy.has_valid_server_type())
+        proxpy.serverType = "FORCED_URL_NO_PASSWORD"
+        self.assertTrue(proxpy.has_valid_server_type())
 
-        self.web_socket_proxpy.serverType = "FORCED_URL"
-        self.assertTrue(self.web_socket_proxpy.has_valid_server_type())
+        proxpy.serverType = "FORCED_URL"
+        self.assertTrue(proxpy.has_valid_server_type())
 
-        self.web_socket_proxpy.serverType = "OPEN_URL"
-        self.assertTrue(self.web_socket_proxpy.has_valid_server_type())
+        proxpy.serverType = "OPEN_URL"
+        self.assertTrue(proxpy.has_valid_server_type())
 
-        self.web_socket_proxpy.serverType = "XYZ"
-        self.assertFalse(self.web_socket_proxpy.has_valid_server_type())
+        proxpy.serverType = "XYZ"
+        self.assertFalse(proxpy.has_valid_server_type())
 
     # is_forced_url_no_password_server tests
     def test_is_forced_url_no_password_server(self):
-        self.assertFalse(self.web_socket_proxpy.is_forced_url_no_password_server())
+        proxpy = self.web_socket_proxpy
+        self.assertFalse(proxpy.is_forced_url_no_password_server())
 
-        self.web_socket_proxpy.serverType = "FORCED_URL_NO_PASSWORD"
-        self.assertTrue(self.web_socket_proxpy.is_forced_url_no_password_server())
+        proxpy.serverType = "FORCED_URL_NO_PASSWORD"
+        self.assertTrue(proxpy.is_forced_url_no_password_server())
 
-        self.web_socket_proxpy.serverType = "FORCED_URL"
-        self.assertFalse(self.web_socket_proxpy.is_forced_url_no_password_server())
+        proxpy.serverType = "FORCED_URL"
+        self.assertFalse(proxpy.is_forced_url_no_password_server())
 
-        self.web_socket_proxpy.serverType = "OPEN_URL"
-        self.assertFalse(self.web_socket_proxpy.is_forced_url_no_password_server())
+        proxpy.serverType = "OPEN_URL"
+        self.assertFalse(proxpy.is_forced_url_no_password_server())
 
     # is_force_url_server tests
     def test_is_forced_url_server(self):

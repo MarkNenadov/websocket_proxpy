@@ -33,16 +33,16 @@ class WebSocketProxpy:
     def __init__(self, logger):
         self.logger = logger
 
-    def is_open_url_server(self):
+    def is_open_url_server(self) -> bool:
         return self.serverType == "OPEN_URL"
 
-    def is_forced_url_server(self):
+    def is_forced_url_server(self) -> bool:
         return self.serverType == "FORCED_URL"
 
     def is_forced_url_no_password_server(self):
         return self.serverType == "FORCED_URL_NO_PASSWORD"
 
-    def authenticate(self, connection):
+    def authenticate(self, connection) -> bool:
         # expects {"password": "12345"}
         try:
             parsed_json = json.loads(connection.credentials)
@@ -58,7 +58,7 @@ class WebSocketProxpy:
             return True
 
     @staticmethod
-    def parse_destination_url(json_content):
+    def parse_destination_url(json_content) -> str or None:
         # expects {"url": "ws://localhost:8081/test"}
         try:
             parsed_json = json.loads(json_content)
@@ -70,12 +70,12 @@ class WebSocketProxpy:
         return parsed_json['url']
 
     @staticmethod
-    def is_close(json_content):
+    def is_close(json_content: str) -> bool:
         # expects {"action": "close"}
         try:
             parsed_json = json.loads(json_content)
         except ValueError:
-            return None
+            return false
 
         if 'action' not in parsed_json:
             return False
@@ -85,7 +85,7 @@ class WebSocketProxpy:
 
         return True
 
-    def load_config_from_yaml(self, config_yaml):
+    def load_config_from_yaml(self, config_yaml) -> bool:
         try:
             self.load_server_config_from_yaml(config_yaml)
             self.load_authentication_config_from_yaml(config_yaml)
@@ -94,7 +94,7 @@ class WebSocketProxpy:
         except TypeError:
             return False
 
-    async def proxy_dispatcher(self, proxy_web_socket, path):
+    async def proxy_dispatcher(self, proxy_web_socket, path: str):
         self.logger.log("Connection established with CLIENT at " + path)
 
         connection = WebSocketConnection()
@@ -212,7 +212,7 @@ class WebSocketProxpy:
                 self.logger.log(error_message)
                 base.fatal_fail(None)
 
-    def get_post_authentication_directions(self):
+    def get_post_authentication_directions(self) -> str:
         authentication_message = "Authenticated. "
 
         if self.is_forced_url_server():
@@ -222,7 +222,7 @@ class WebSocketProxpy:
 
         return authentication_message
 
-    def has_valid_server_type(self):
+    def has_valid_server_type(self) -> bool:
         return self.is_open_url_server() or self.is_forced_url_server() or self.is_forced_url_no_password_server()
 
     async def get_proxy_url_from_client(self, proxy_web_socket, ):
@@ -254,7 +254,7 @@ class WebSocketProxpy:
 
         return proxied_web_socket
 
-    def requires_authentication(self):
+    def requires_authentication(self) -> bool:
         return  not self.is_forced_url_no_password_server();
 
 
