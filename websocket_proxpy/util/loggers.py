@@ -4,7 +4,7 @@ import logging
 class ConsoleDebugLogger:
     logger = None
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)
 

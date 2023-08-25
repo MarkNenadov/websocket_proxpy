@@ -1,4 +1,6 @@
 import sys
+from typing import Hashable, Union
+
 from websocket_proxpy.util import base
 
 try:
@@ -10,6 +12,10 @@ except ImportError:
 from websocket_proxpy.util.jsonutils import get_json_status_response
 import asyncio
 import json
+
+class WebSocketConnection:
+    request_count = 0
+    credentials = ""
 
 
 async def send_to_web_socket_connection_aware(proxy_web_socket, proxied_web_socket, request_for_proxy):
@@ -42,7 +48,7 @@ class WebSocketProxpy:
     def is_forced_url_no_password_server(self) -> bool:
         return self.serverType == "FORCED_URL_NO_PASSWORD"
 
-    def authenticate(self, connection) -> bool:
+    def authenticate(self, connection: WebSocketConnection) -> bool:
         # expects {"password": "12345"}
         try:
             parsed_json = json.loads(connection.credentials)
@@ -85,7 +91,7 @@ class WebSocketProxpy:
 
         return True
 
-    def load_config_from_yaml(self, config_yaml) -> bool:
+    def load_config_from_yaml(self, config_yaml: Union[dict[Hashable,any],list,None]) -> bool:
         try:
             self.load_server_config_from_yaml(config_yaml)
             self.load_authentication_config_from_yaml(config_yaml)
@@ -109,7 +115,7 @@ class WebSocketProxpy:
         else:
             await self.handle_connection_without_authentication(connection, proxy_web_socket)
 
-    async def handle_authenticated_connection(self, connection, proxy_web_socket):
+    async def handle_authenticated_connection(self, connection: WebSocketConnection, proxy_web_socket):
         authenticated_message = "Authenticated " + self.get_post_authentication_directions()
         await proxy_web_socket.send(get_json_status_response("ok", f"{authenticated_message}'"))
         if self.is_open_url_server():
@@ -121,17 +127,17 @@ class WebSocketProxpy:
         proxied_web_socket = await self.connect_to_proxy_server(proxied_url_value, proxy_web_socket)
         await self.process_requests(proxy_web_socket, proxied_web_socket, connection)
 
-    async def handle_connection_without_authentication(self, connection, proxy_web_socket):
+    async def handle_connection_without_authentication(self, connection: WebSocketConnection, proxy_web_socket):
         proxied_url_value = self.proxied_url
         proxied_web_socket = await self.connect_to_proxy_server(proxied_url_value, proxy_web_socket)
         await self.process_requests(proxy_web_socket, proxied_web_socket, connection)
 
-    async def handle_failed_authentication(self, connection, proxy_web_socket):
+    async def handle_failed_authentication(self, connection: WebSocketConnection, proxy_web_socket):
         auth_failed_message = "Authentication failed. Password invalid [" + connection.credentials + "]"
         await proxy_web_socket.send(get_json_status_response("error", auth_failed_message + "'}"))
         self.logger.log("CLIENT authentication credentials [%s] rejected.", connection.credentials)
 
-    async def respond_with_proxy_connect_error(self, proxied_url_value, proxy_web_socket) -> None:
+    async def respond_with_proxy_connect_error(self, proxied_url_value: str, proxy_web_socket) -> None:
         error_message = "Unable to connect with proxied url [" + proxied_url_value + "]. Connection closed."
         await proxy_web_socket.send(get_json_status_response("error", error_message + "'}"))
         self.logger.log(error_message)
@@ -142,7 +148,7 @@ class WebSocketProxpy:
 
         return credentials
 
-    def run(self, config_yaml) -> None:
+    def run(self, config_yaml: Union[dict[Hashable,any],list,None]) -> None:
         is_config_loaded = self.load_config_from_yaml(config_yaml)
 
         if not is_config_loaded:
@@ -153,7 +159,7 @@ class WebSocketProxpy:
         asyncio.get_event_loop().run_until_complete(server)
         asyncio.get_event_loop().run_forever()
 
-    async def process_requests(self, proxy_web_socket, proxied_web_socket, connection) -> None:
+    async def process_requests(self, proxy_web_socket, proxied_web_socket, connection: WebSocketConnection) -> None:
         while True:
             request_for_proxy = await proxy_web_socket.recv()
             self.logger.log(f"Received request from CLIENT [{request_for_proxy}")
@@ -184,16 +190,16 @@ class WebSocketProxpy:
         self.logger.log(connection_limit_error)
         await proxy_web_socket.send(get_json_status_response("error", connection_limit_error))
 
-    def load_authentication_config_from_yaml(self, config_yaml) -> None:
+    def load_authentication_config_from_yaml(self, config_yaml: Union[dict[Hashable,any],list,None]) -> None:
         authentication_configuration = config_yaml['configuration']['authenticationConfiguration']
         self.password = authentication_configuration['password']
 
-    def load_transport_config_from_yaml(self, config_yaml) -> None:
+    def load_transport_config_from_yaml(self, config_yaml: Union[dict[Hashable,any],list,None]) -> None:
         transport_configuration = config_yaml['configuration']['transportConfiguration']
         self.send_prefix = transport_configuration['sendPrefix']
         self.send_suffix = transport_configuration['sendSuffix']
 
-    def load_server_config_from_yaml(self, config_yaml) -> None:
+    def load_server_config_from_yaml(self, config_yaml: Union[dict[Hashable,any],list,None]) -> None:
         server_config = config_yaml['configuration']['serverConfiguration']
 
         self.host = server_config['listenHost']
@@ -241,7 +247,7 @@ class WebSocketProxpy:
 
         return proxied_url_value
 
-    async def connect_to_proxy_server(self, proxied_url_value, proxy_web_socket):
+    async def connect_to_proxy_server(self, proxied_url_value: str, proxy_web_socket):
         try:
             proxied_web_socket = await websockets.connect(proxied_url_value)
         except ConnectionRefusedError:
@@ -256,8 +262,3 @@ class WebSocketProxpy:
 
     def requires_authentication(self) -> bool:
         return  not self.is_forced_url_no_password_server()
-
-
-class WebSocketConnection:
-    request_count = 0
-    credentials = ""
