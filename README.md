@@ -13,8 +13,10 @@ A lightweight WebSocket proxy server written in Python 3.
 ## Requirements
 
 - Python 3.9+
-- `websockets` — `pip install websockets`
-- `pyyaml` — `pip install pyyaml`
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Configuration
 
