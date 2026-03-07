@@ -1,45 +1,81 @@
-WebSocketProxpy
-=========
+# websocket-proxpy
 
-A simple WebSocket Proxy Server implemented in Python 3.
+A lightweight WebSocket proxy server written in Python 3.
 
-This server can run in one of three modes:
+## Modes
 
-1. OPEN_URL, where the connecting client provides a url to connect to via the proxy
-2. FORCED_URL, where the server is hardwired to connect to one and only one url
-2. FORCED_URL_NO_PASSWORD, where the server is hardwired to connect to one and only one url and no password is required.
+| Mode | Description |
+|---|---|
+| `OPEN_URL` | Client specifies the upstream URL to connect to |
+| `FORCED_URL` | Server is hardwired to one upstream URL; client must authenticate |
+| `FORCED_URL_NO_PASSWORD` | Server is hardwired to one upstream URL; no authentication required |
 
-== Requirements ==
+## Requirements
 
-1. Python 3 (tested on Python 3.4, 3.6, 3.9)
-2. The 'websockets' module (pip install websockets)
-3. The 'yaml' module (pip install pyyaml)
+- Python 3.9+
+- `websockets` — `pip install websockets`
+- `pyyaml` — `pip install pyyaml`
 
-== Instructions ==
+## Configuration
 
-1. In config.yaml, ensure serverType is set to OPEN_URL, FORCED_URL, or FORCED_URL_NO_PASSWORD
+Edit `config.yaml` before starting the server:
 
-2. If you are using FORCED_URL or FORCED_URL_NO_PASSWORD, uncomment and set proxiedUrl to a valid websocket url.
-   Otherwise it should be commented out with a "#"
+```yaml
+configuration:
+    authenticationConfiguration:
+        password: "yourpassword"
+    serverConfiguration:
+        type: "FORCED_URL_NO_PASSWORD"   # OPEN_URL | FORCED_URL | FORCED_URL_NO_PASSWORD
+        listenHost: "localhost"
+        port: "1111"
+        requestsPerConnection: "10000"
+        proxiedUrl: "ws://localhost:9001" # required for FORCED_URL and FORCED_URL_NO_PASSWORD
+    transportConfiguration:
+        sendPrefix: ""
+        sendSuffix: ""
+```
 
-3. Set the other configuration options, such as host, post, passphrase
+## Running
 
-4. From within the project root, launch proxy.py and connect from a websocket client to the host/port in config.yaml.
+```bash
+python3 launch.py
+```
 
-5. If you are using FORCED_URL_NO_PASSWORD, skip to step 7. Otherwise, send the password in json like so:
+## Protocol
 
-    {"password": "12345"}
+Once connected, the exchange depends on the server mode.
 
-    You will receive a json response where "status" is either "ok" or "error" with an elaboration in "message.
+### OPEN_URL and FORCED_URL — authenticate first
 
-6. If you are using FORCED_URL or FORCED_URL_NO_PASSWORD, skip this step. Otherwise send the url you wish to connect
-   to in json, like so:
-ws://localhost:8081/test
-    {"url": ""}
+```json
+→ {"password": "yourpassword"}
+← {"status": "ok", "message": "..."}
+```
 
-    You will receive a json response where "status" is either "ok" or "error"  with an elaboration in "message.
+### OPEN_URL — then provide the upstream URL
 
-7. Send X amount of websocket requests, which will be passed along to the proxied websocket.
+```json
+→ {"url": "ws://upstream-host:port/path"}
+← {"status": "ok", "message": "..."}
+```
 
-8. When you are done and want the connection terminated, send:
-    {"action": "close"}
+### Send requests / receive responses
+
+```json
+→ "your message"
+← "proxied response"
+```
+
+### Close the connection
+
+```json
+→ {"action": "close"}
+```
+
+All error responses have the form `{"status": "error", "message": "..."}`.
+
+## Running Tests
+
+```bash
+python3 -m unittest test.proxy_tests test.loggers_tests -v
+```
